@@ -1,4 +1,4 @@
-import App.Funciones as Funciones
+import Funciones
 
 def crearProducto():
     opcion = ""
@@ -46,7 +46,7 @@ def crearProducto():
                 print("Nuestro restaurante no maneja más de un 30% DE IVA en sus productos.")
     
     Funciones.crearProducto(tipoProducto,codigo,nombre,valor,iva)
-    print("El producto {nombre} se creó correctamente.")    
+    print(f"El producto {nombre} se creó correctamente.")    
 
 
 def crearMesa():
@@ -115,3 +115,144 @@ def crearCliente():
     
     Funciones.crearCliente(id,nombre,telefono,email)
     print(f"El cliente {nombre} se creó correctamente.")
+
+
+def inicioFacturacion():
+    print("Para empezar un proceso de factuación, necesitamos los siguientes datos:")
+
+    
+    while(True):
+        codigoMesa = input("Código de la mesa -> ").strip()
+        if codigoMesa.isdigit():
+            break
+        print("El código solo puede contener números.")
+
+    while(True):
+        idCliente = input("Identificación -> ").strip()
+        if idCliente.isdigit():
+            break
+        print("El ID solo puede contener números.")
+        continue
+
+    factura = Funciones.facturar(codigoMesa,idCliente)
+    if factura:
+        iniciarVenta(factura)
+
+
+def iniciarVenta(factura):
+    detalleFactura = []
+    opcion = ""
+
+    while(opcion not in "0"):
+        print("-"*35)
+        print("""¿Qué quieres hacer a continuación?
+    1. Agregar productos al pedido
+    2. Sacar productos del pedido
+    0. Finalizar pedido""")
+        print("-"*35)
+        opcion = input("Número de opción -> ")
+        match(opcion):
+
+            case "1":
+                agregarProducto(detalleFactura)
+            case "2":
+                sacarProducto(detalleFactura)
+            case "0":
+                finalizarPedido(factura, detalleFactura)
+
+
+def agregarProducto(detalleFactura):
+    print("Para agregar un producto:")
+    while(True):
+        codigoProducto = input("Código del producto -> ").strip()
+        if codigoProducto.isdigit():
+            break
+        print("El código solo puede contener números.")
+    while(True):
+        try:
+            cantidad = int(input("Cantidad a añadir -> "))
+        except ValueError:
+            print("La cantidad solo puede contener números.")
+            continue
+
+        if cantidad > 0:
+            break
+        print("El campo (CANTIDAD) no puede ser negativo ni nulo.")
+
+    Funciones.agregarProducto(codigoProducto,cantidad,detalleFactura)
+
+
+def sacarProducto(detalleFactura):
+    if len(detalleFactura) > 0:
+        print("Para sacar un producto:")
+        while(True):
+            codigoProducto = input("Código del producto -> ").strip()
+            if codigoProducto.isdigit():
+                break
+            print("El código solo puede contener números.")
+        while(True):
+            try:
+                cantidad = int(input("Cantidad a añadir -> "))
+            except ValueError:
+                print("La cantidad solo puede contener números.")
+                continue
+
+            if cantidad > 0:
+                break
+            print("El campo (CANTIDAD) no puede ser negativo ni nulo.")
+
+        for pedido in detalleFactura:
+            if codigoProducto == pedido["ID_PRODUCTO"]:
+                mensaje = Funciones.sacarProducto(codigoProducto,cantidad,detalleFactura)
+                if mensaje:
+                    print(mensaje)
+                else:
+                    print(f"Se quitaron {cantidad} unidades de {pedido['Nombre_Producto']} éxitosamente.")
+            else:
+                print("Ese producto no está en el pedido.")
+
+    else:
+        print("No se puede sacar productos del pedido porque está vacío.")
+
+def finalizarPedido(factura, detalleFactura):
+    print("Pedido finalizado: Generando factura...")
+    Funciones.guardarInformacionFactura(factura,detalleFactura)
+    
+    facturaVisual = f"""
+==========================================
+            ACME RESTAURANT
+==========================================
+Fecha: {factura['Fecha']}
+Mesa: {factura['Mesa']}
+------------------------------------------
+CLIENTE:
+Nombre: {factura['Nombre_Cliente']}
+ID: {factura['ID_CLIENTE']}
+Tel: {factura['Teléfono']}
+Email: {factura['Email']}
+------------------------------------------
+DETALLE:
+Cod | Producto | Cant | V.Unit | IVA | Subtotal
+"""
+
+    for p in detalleFactura:
+        linea = f"{p['ID_PRODUCTO']} | {p['Nombre_Producto']} | {p['Cantidad']} | {p['Precio_unitario']} | {p['IVA']}% | {p['Subtotal']}\n"
+        facturaVisual += linea
+        total_factura += float(p["Subtotal"])
+
+    facturaVisual += "------------------------------------------"
+    facturaVisual += f"\nTOTAL A PAGAR: ${round(total_factura, 2)}"
+    facturaVisual += "\n==========================================\n"
+
+    print(facturaVisual)
+
+    while(True):
+        respuesta = input("¿Quiere guardar la factura?").title()
+        if respuesta in ("Si","Sí"):
+            print("Guardando la factura...")
+            Funciones.guardarFacturaVisual(facturaVisual)
+            break
+        elif respuesta in ("No"):
+            print("Ha elegido no guardar la factura.")
+            break
+        print("Opción inválida.")
