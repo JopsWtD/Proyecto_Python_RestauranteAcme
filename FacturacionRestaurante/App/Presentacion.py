@@ -1,4 +1,4 @@
-import Funciones
+import App.Funciones as Funciones
 from datetime import datetime
 
 def crearProducto():
@@ -27,7 +27,7 @@ def crearProducto():
 
     while(True):
         try:
-            valor = float(input("Valor del producto -> "))
+            valor = int(input("Valor del producto -> "))
             break
         except ValueError:
             print("El campo (Precio) solo puede contener números.")
@@ -193,7 +193,7 @@ def sacarProducto(detalleFactura):
             print("El código solo puede contener números.")
         while(True):
             try:
-                cantidad = int(input("Cantidad a añadir -> "))
+                cantidad = int(input("Cantidad a eliminar -> "))
             except ValueError:
                 print("La cantidad solo puede contener números.")
                 continue
@@ -202,15 +202,19 @@ def sacarProducto(detalleFactura):
                 break
             print("El campo (CANTIDAD) no puede ser negativo ni nulo.")
 
+        encontrado = False
+
         for pedido in detalleFactura:
             if codigoProducto == pedido["ID_PRODUCTO"]:
+                encontrado = True
                 mensaje = Funciones.sacarProducto(codigoProducto,cantidad,detalleFactura)
                 if mensaje:
                     print(mensaje)
                 else:
                     print(f"Se quitaron {cantidad} unidades de {pedido['Nombre_Producto']} éxitosamente.")
-            else:
-                print("Ese producto no está en el pedido.")
+
+        if not encontrado:
+            print("Ese producto no está en el pedido.")
 
     else:
         print("No se puede sacar productos del pedido porque está vacío.")
@@ -236,10 +240,10 @@ DETALLE:
 Cod | Producto | Cant | V.Unit | IVA | Subtotal
 """
     totalFactura = 0
-    for p in detalleFactura:
-        linea = f"{p['ID_PRODUCTO']} | {p['Nombre_Producto']} | {p['Cantidad']} | {p['Precio_unitario']} | {p['IVA']}% | {p['Subtotal']}\n"
+    for pedido in detalleFactura:
+        linea = f"{pedido['ID_PRODUCTO']} | {pedido['Nombre_Producto']} | {pedido['Cantidad']}   | {pedido['Precio_unitario']}    | {pedido['IVA']}%   | {pedido['Subtotal']}\n"
         facturaVisual += linea
-        total_factura += float(p["Subtotal"])
+        totalFactura += float(pedido["Subtotal"])
 
     facturaVisual += "------------------------------------------"
     facturaVisual += f"\nTOTAL A PAGAR: ${round(totalFactura, 2)}"
