@@ -6,7 +6,7 @@ def crearProducto():
     print("Para la creación de un producto, necesitamos los siguientes datos:")
     while(opcion not in ("1","2","3")):
         print("El producto a añadir es:\n1.Bebida\n2.Platillo\n3.Postre")
-        opcion = input("Opción ->")
+        opcion = input("Opción -> ")
         match(opcion):
             case "1":
                 tipoProducto = "Bebida"
@@ -121,7 +121,6 @@ def crearCliente():
 def inicioFacturacion():
     print("Para empezar un proceso de factuación, necesitamos los siguientes datos:")
 
-    
     while(True):
         codigoMesa = input("Código de la mesa -> ").strip()
         if codigoMesa.isdigit():
@@ -152,12 +151,14 @@ def iniciarVenta(factura):
     0. Finalizar pedido""")
         print("-"*35)
         opcion = input("Número de opción -> ")
-        match(opcion):
 
+        match(opcion):
             case "1":
                 agregarProducto(detalleFactura)
+
             case "2":
                 sacarProducto(detalleFactura)
+
             case "0":
                 finalizarPedido(factura, detalleFactura)
 

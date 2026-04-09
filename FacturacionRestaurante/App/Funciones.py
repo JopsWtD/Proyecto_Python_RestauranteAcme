@@ -55,14 +55,17 @@ def crearCliente(id, nombre, telefono, email):
             writerCSV.writeheader()
         writerCSV.writerows([cliente])
 
+
 def facturar(codigoMesa,idCliente):
     with open(ruta/"Mesas.csv","r",newline="",encoding="utf-8") as file:
         listaMesas = DictReader(file)
         mesa = next((mesa for mesa in listaMesas if codigoMesa == mesa["Código"]),None)
+
     if mesa:
         with open(ruta/"Clientes.csv","r",newline="",encoding="utf-8") as file:
             listaClientes = DictReader(file)
             cliente = next((cliente for cliente in listaClientes if idCliente == cliente["ID"]), None)
+
         if cliente:
             factura = {}
 
@@ -106,8 +109,6 @@ def agregarProducto(codigoProducto, cantidad, detalleFactura):
         pedido["Cantidad"] = cantidad
         pedido["Precio_unitario"] = int(producto["Valor"])
         pedido["IVA"] = int(producto['IVA'])
-
-
         pedido["Subtotal"] = round((((pedido["Precio_unitario"] + (pedido["Precio_unitario"] * pedido['IVA'])/100)) * cantidad),2)
 
         detalleFactura.append(pedido)
