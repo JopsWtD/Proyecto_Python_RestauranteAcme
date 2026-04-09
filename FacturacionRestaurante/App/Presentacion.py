@@ -1,9 +1,10 @@
 import Funciones
+from datetime import datetime
 
 def crearProducto():
     opcion = ""
     print("Para la creación de un producto, necesitamos los siguientes datos:")
-    while(opcion < 1 or opcion > 3):
+    while(opcion not in ("1","2","3")):
         print("El producto a añadir es:\n1.Bebida\n2.Platillo\n3.Postre")
         opcion = input("Opción ->")
         match(opcion):
@@ -37,15 +38,15 @@ def crearProducto():
         except ValueError:
             print("El campo (IVA) tiene que tener valor numérico.")
             continue
-        if iva >=1 and iva <= 20:
+        if iva >=1 and iva <= 29:
             break
         else:
-            if iva <= 0:
-                print("El IVA no puede ser un número negativo.")
+            if iva < 1:
+                print("El IVA no puede ser nulo ni negativo.")
             if iva > 30:
                 print("Nuestro restaurante no maneja más de un 30% DE IVA en sus productos.")
     
-    Funciones.crearProducto(tipoProducto,codigo,nombre,valor,iva)
+    Funciones.crearProducto(codigo,tipoProducto,nombre,valor,iva)
     print(f"El producto {nombre} se creó correctamente.")    
 
 
@@ -99,7 +100,7 @@ def crearCliente():
     while(True):
         telefono = input("Número de teléfono -> ").strip()
         if telefono.isdigit():
-            telefono.insert(0,+57 )
+            telefono = f"+57 {telefono}"
             break
         print("El número de teléfono solo puede contener números.")
         continue
@@ -143,7 +144,7 @@ def iniciarVenta(factura):
     detalleFactura = []
     opcion = ""
 
-    while(opcion not in "0"):
+    while(opcion != "0"):
         print("-"*35)
         print("""¿Qué quieres hacer a continuación?
     1. Agregar productos al pedido
@@ -234,14 +235,14 @@ Email: {factura['Email']}
 DETALLE:
 Cod | Producto | Cant | V.Unit | IVA | Subtotal
 """
-
+    totalFactura = 0
     for p in detalleFactura:
         linea = f"{p['ID_PRODUCTO']} | {p['Nombre_Producto']} | {p['Cantidad']} | {p['Precio_unitario']} | {p['IVA']}% | {p['Subtotal']}\n"
         facturaVisual += linea
         total_factura += float(p["Subtotal"])
 
     facturaVisual += "------------------------------------------"
-    facturaVisual += f"\nTOTAL A PAGAR: ${round(total_factura, 2)}"
+    facturaVisual += f"\nTOTAL A PAGAR: ${round(totalFactura, 2)}"
     facturaVisual += "\n==========================================\n"
 
     print(facturaVisual)
@@ -254,5 +255,59 @@ Cod | Producto | Cant | V.Unit | IVA | Subtotal
             break
         elif respuesta in ("No"):
             print("Ha elegido no guardar la factura.")
+            break
+        print("Opción inválida.")
+
+def reporteVentas():
+    while True:
+        fecha = input("Ingrese la fecha para el reporte (DD/MM/AAAA) -> ").strip()
+        try:
+            datetime.strptime(fecha, "%d/%m/%Y")
+            break
+        except ValueError:
+            print("Formato de fecha inválido. Use DD/MM/AAAA.")
+
+    reporte = Funciones.generarReporte(fecha)
+
+    if not reporte:
+        print(f"No se encontraron ventas para la fecha {fecha}.")
+        return
+
+    reporteVisual = f"""
+==========================================
+        REPORTE DE VENTAS - ACME
+==========================================
+Fecha: {fecha}
+------------------------------------------
+Mesa | Total Productos | Subtotal Bruto | Subtotal IVA | Subtotal
+"""
+
+    totalVentaBruta = 0
+    totalIVA = 0
+    totalVentas = 0
+
+    for fila in reporte:
+        linea = f"{fila['Mesa']} | {fila['Total_Productos']} | ${fila['Subtotal_Bruto']} | ${fila['Subtotal_IVA']} | ${fila['Subtotal']}\n"
+        reporteVisual += linea
+        totalVentaBruta += fila["Subtotal_Bruto"]
+        totalIVA += fila["Subtotal_IVA"]
+        totalVentas += fila["Subtotal"]
+
+    reporteVisual += "------------------------------------------"
+    reporteVisual += f"\nTotal Venta Bruta: ${round(totalVentaBruta, 2)}"
+    reporteVisual += f"\nTotal IVA: ${round(totalIVA, 2)}"
+    reporteVisual += f"\nTotal Ventas: ${round(totalVentas, 2)}"
+    reporteVisual += "\n==========================================\n"
+
+    print(reporteVisual)
+
+    while True:
+        respuesta = input("¿Desea imprimir el reporte en CSV? -> ").title()
+        if respuesta in ("Si", "Sí"):
+            Funciones.guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas)
+            print("Reporte guardado exitosamente.")
+            break
+        elif respuesta == "No":
+            print("Ha elegido no guardar el reporte.")
             break
         print("Opción inválida.")
