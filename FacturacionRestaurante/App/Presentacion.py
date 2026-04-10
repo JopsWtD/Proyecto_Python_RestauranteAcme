@@ -20,13 +20,13 @@ def crearProducto():
                 print("Opción inválida. Intente de nuevo.")
 
     
-    codigo = Utilities.validacionCampos(nombreCampo="Código",tipo=int,condicion=Utilities.esDigito,mensajeCondicion="solo puede tener números.")
+    codigo = Utilities.validacionCampos(nombreCampo='Código',tipo=int,condicion=Utilities.esDigito,mensajeCondicion='solo puede tener números.')
 
-    nombre = Utilities.validacionCampos("Nombre",str,Utilities.notBlank,f"no puede estar vacío.")
+    nombre = Utilities.validacionCampos('Nombre',str,Utilities.notBlank,'no puede estar vacío.')
 
-    valor = Utilities.validacionCampos("Valor",int,Utilities.campoNoNuloNiNegativo,"no puede ser nulo ni negativo.")
+    valor = Utilities.validacionCampos('Valor',int,Utilities.campoNoNuloNiNegativo,'no puede ser nulo ni negativo.')
     
-    iva = Utilities.validacionCampos("IVA",int,Utilities.ivaValido,"no puede ser menor que 1 ni mayor que 30.")
+    iva = Utilities.validacionCampos('IVA',int,Utilities.ivaValido,'no puede ser menor que 1 ni mayor que 30.')
     
     mensaje = Funciones.crearProducto(codigo,tipoProducto,nombre,valor,iva)
     if mensaje:
@@ -38,9 +38,9 @@ def crearProducto():
 def crearMesa():
     print("Para crear una mesa, necesitamos los siguientes datos: ")
 
-    codigo = Utilities.validacionCampos("Código",int,Utilities.esDigito,"solo puede tener números.")
+    codigo = Utilities.validacionCampos('Código',int,Utilities.esDigito,'solo puede tener números.')
 
-    puestos = Utilities.validacionCampos("Cantidad de puestos",int,Utilities.validacionPuestos,"no puede ser menor que 1 ni mayor que 50.")
+    puestos = Utilities.validacionCampos('Cantidad de puestos',int,Utilities.validacionPuestos,'no puede ser menor que 1 ni mayor que 50.')
     
     if puestos > 0 and puestos <= 50:
         if puestos == 1:
@@ -61,11 +61,11 @@ def crearMesa():
 def crearCliente():
     print("Para crear un cliente, necesitamos los siguientes datos: ")
 
-    idCliente = Utilities.validacionCampos("ID",int,Utilities.esDigito,"solo puede tener números.")
+    idCliente = Utilities.validacionCampos('ID',int,Utilities.esDigito,'solo puede tener números.')
 
-    nombre = Utilities.validacionCampos("Nombre",str,Utilities.notBlank,"no puede estar vacío.").title()
+    nombre = Utilities.validacionCampos('Nombre',str,Utilities.notBlank,'no puede estar vacío.').title()
 
-    telefono = f"+57 {Utilities.validacionCampos("Teléfono",str,Utilities.esDigito,"solo puede tener números.")}"
+    telefono = f"+57 {Utilities.validacionCampos('Teléfono',str,Utilities.esDigito,'solo puede tener números.')}"
     
     email = Utilities.validacionEmail()
     
@@ -79,9 +79,9 @@ def crearCliente():
 def inicioFacturacion():
     print("Para empezar un proceso de factuación, necesitamos los siguientes datos:")
 
-    codigoMesa = Utilities.validacionCampos("Código de la mesa",int,Utilities.esDigito,"solo puede tener números.")
+    codigoMesa = Utilities.validacionCampos('Código de la mesa',int,Utilities.esDigito,"solo puede tener números.")
 
-    idCliente = Utilities.validacionCampos("ID del cliente",int,Utilities.esDigito,"solo puede tener números.")
+    idCliente = Utilities.validacionCampos('ID del cliente',int,Utilities.esDigito,"solo puede tener números.")
 
     factura = Funciones.facturar(codigoMesa,idCliente)
     if factura:
@@ -116,9 +116,9 @@ def agregarProducto(detalleFactura):
 
     print("Para agregar un producto:")
 
-    codigoProducto = Utilities.validacionCampos("Código del producto",int,Utilities.esDigito,"solo puede tener números.")
+    codigoProducto = Utilities.validacionCampos('Código del producto',int,Utilities.esDigito,'solo puede tener números.')
 
-    cantidad = Utilities.validacionCampos("Cantidad a añadir",int,Utilities.campoNoNuloNiNegativo,"no puede ser nulo ni negativo.")
+    cantidad = Utilities.validacionCampos('Cantidad a añadir',int,Utilities.campoNoNuloNiNegativo,'no puede ser nulo ni negativo.')
 
     Funciones.agregarProducto(codigoProducto,cantidad,detalleFactura)
 
@@ -127,9 +127,9 @@ def sacarProducto(detalleFactura):
     if len(detalleFactura) > 0:
         print("Para eliminar un producto del pedido:")
         
-        codigoProducto = Utilities.validacionCampos("Código del producto",int,Utilities.esDigito,"solo puede tener números.")
+        codigoProducto = Utilities.validacionCampos('Código del producto',int,Utilities.esDigito,'solo puede tener números.')
         
-        cantidad = Utilities.validacionCampos("Cantidad a eliminar",int,Utilities.campoNoNuloNiNegativo,"solo puede tener números.")
+        cantidad = Utilities.validacionCampos('Cantidad a eliminar',int,Utilities.campoNoNuloNiNegativo,'solo puede tener números.')
 
         encontrado = False
         for pedido in detalleFactura:
