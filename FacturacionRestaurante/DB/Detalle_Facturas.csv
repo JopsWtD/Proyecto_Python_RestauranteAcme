@@ -1,4 +1,0 @@
-ID_FACTURA,ID_PRODUCTO,Nombre_Producto,Cantidad,Precio_unitario,IVA,Subtotal
-1,150,Limonada,10,3000,20,36000.0
-2,150,Limonada,5,3000,20,18000.0
-2,120,Hamburguesa,5,7500,20,45000.0

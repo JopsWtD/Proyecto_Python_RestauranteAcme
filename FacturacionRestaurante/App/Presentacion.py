@@ -1,6 +1,8 @@
 import App.Funciones as Funciones
 from datetime import datetime
 
+import App.Utilidades as Utilities
+
 def crearProducto():
     opcion = ""
     print("Para la creación de un producto, necesitamos los siguientes datos:")
@@ -17,122 +19,69 @@ def crearProducto():
             case _:
                 print("Opción inválida. Intente de nuevo.")
 
-    while(True):
-        codigo = input("Código del producto -> ").strip()
-        if codigo.isdigit():
-            break
-        print("El código solo puede contener números.")
-
-    nombre = input("Nombre del producto -> ").title()
-
-    while(True):
-        try:
-            valor = int(input("Valor del producto -> "))
-            break
-        except ValueError:
-            print("El campo (Precio) solo puede contener números.")
     
-    while(True):
-        try:
-            iva = int(input("IVA aplicable al producto -> "))
-        except ValueError:
-            print("El campo (IVA) tiene que tener valor numérico.")
-            continue
-        if iva >=1 and iva <= 29:
-            break
-        else:
-            if iva < 1:
-                print("El IVA no puede ser nulo ni negativo.")
-            if iva > 30:
-                print("Nuestro restaurante no maneja más de un 30% DE IVA en sus productos.")
+    codigo = Utilities.validacionCampos(nombreCampo="Código",tipo=int,condicion=Utilities.esDigito,mensajeCondicion="solo puede tener números.")
+
+    nombre = Utilities.validacionCampos("Nombre",str,Utilities.notBlank,f"no puede estar vacío.")
+
+    valor = Utilities.validacionCampos("Valor",int,Utilities.campoNoNuloNiNegativo,"no puede ser nulo ni negativo.")
     
-    Funciones.crearProducto(codigo,tipoProducto,nombre,valor,iva)
-    print(f"El producto {nombre} se creó correctamente.")    
+    iva = Utilities.validacionCampos("IVA",int,Utilities.ivaValido,"no puede ser menor que 1 ni mayor que 30.")
+    
+    mensaje = Funciones.crearProducto(codigo,tipoProducto,nombre,valor,iva)
+    if mensaje:
+        print(mensaje)
+    else:
+        print(f"El producto {nombre} se creó correctamente.")    
 
 
 def crearMesa():
     print("Para crear una mesa, necesitamos los siguientes datos: ")
 
-    while(True):
-        codigo = input("Código de la mesa -> ").strip()
-        if codigo.isdigit():
-            break
-        print("El código solo puede contener números.")
+    codigo = Utilities.validacionCampos("Código",int,Utilities.esDigito,"solo puede tener números.")
 
-    while(True):
-        try:
-            puestos = int(input("Cantidad de puestos -> "))
-        except ValueError:
-            print("El campo (Puestos) solo puede contener números.")
-            continue
-
-        if puestos > 0 and puestos <= 50:
-            if puestos == 1:
-                tipoMesa = "Individual"
-            elif puestos == 2:
-                tipoMesa = "Pareja"
-            elif puestos >= 3 and puestos <= 16:
-                tipoMesa = "Familiar"
-            else:
-                tipoMesa = "Corporación"
-            break
+    puestos = Utilities.validacionCampos("Cantidad de puestos",int,Utilities.validacionPuestos,"no puede ser menor que 1 ni mayor que 50.")
+    
+    if puestos > 0 and puestos <= 50:
+        if puestos == 1:
+            tipoMesa = "Individual"
+        elif puestos == 2:
+            tipoMesa = "Pareja"
+        elif puestos >= 3 and puestos <= 16:
+            tipoMesa = "Familiar"
         else:
-            if puestos <= 0:
-                print("Una mesa no puede tener una cantidad nula o negativa de puestos.")
-            if puestos > 50:
-                print("Nuestro restaurante no tiene capacidad para una mesa con más de 50 puestos.")
+            tipoMesa = "Corporación"
 
-    Funciones.crearMesa(codigo,tipoMesa,puestos)
-    print("Se creó la mesa correctamente.")
+    mensaje = Funciones.crearMesa(codigo,tipoMesa,puestos)
+    if mensaje:
+        print(mensaje)
+    else:
+        print("Se creó la mesa correctamente.")
 
 def crearCliente():
     print("Para crear un cliente, necesitamos los siguientes datos: ")
 
-    while(True):
-        id = input("Identificación -> ").strip()
-        if id.isdigit():
-            break
-        print("El ID solo puede contener números.")
-        continue
+    idCliente = Utilities.validacionCampos("ID",int,Utilities.esDigito,"solo puede tener números.")
 
-    nombre = input("Nombre del cliente -> ").title()
+    nombre = Utilities.validacionCampos("Nombre",str,Utilities.notBlank,"no puede estar vacío.").title()
 
-    while(True):
-        telefono = input("Número de teléfono -> ").strip()
-        if telefono.isdigit():
-            telefono = f"+57 {telefono}"
-            break
-        print("El número de teléfono solo puede contener números.")
-        continue
+    telefono = f"+57 {Utilities.validacionCampos("Teléfono",str,Utilities.esDigito,"solo puede tener números.")}"
     
-    while(True):
-        texto = ""
-        email = input("Correo electrónico -> ")
-        if "@" in email:
-            texto += email[email.find("@")+1:]
-            if texto in ("gmail.com","hotmail.com","hotmail.es"):
-                break
-        print("El correo electrónico no es válido o no está soportado por nuestros servidores. (Gmail o Hotmail)")
+    email = Utilities.validacionEmail()
     
-    Funciones.crearCliente(id,nombre,telefono,email)
-    print(f"El cliente {nombre} se creó correctamente.")
+    mensaje = Funciones.crearCliente(idCliente,nombre,telefono,email)
+    if mensaje:
+        print(mensaje)
+    else:
+        print(f"El cliente {nombre} se creó correctamente.")
 
 
 def inicioFacturacion():
     print("Para empezar un proceso de factuación, necesitamos los siguientes datos:")
 
-    while(True):
-        codigoMesa = input("Código de la mesa -> ").strip()
-        if codigoMesa.isdigit():
-            break
-        print("El código solo puede contener números.")
+    codigoMesa = Utilities.validacionCampos("Código de la mesa",int,Utilities.esDigito,"solo puede tener números.")
 
-    while(True):
-        idCliente = input("Identificación -> ").strip()
-        if idCliente.isdigit():
-            break
-        print("El ID solo puede contener números.")
-        continue
+    idCliente = Utilities.validacionCampos("ID del cliente",int,Utilities.esDigito,"solo puede tener números.")
 
     factura = Funciones.facturar(codigoMesa,idCliente)
     if factura:
@@ -164,47 +113,25 @@ def iniciarVenta(factura):
 
 
 def agregarProducto(detalleFactura):
-    print("Para agregar un producto:")
-    while(True):
-        codigoProducto = input("Código del producto -> ").strip()
-        if codigoProducto.isdigit():
-            break
-        print("El código solo puede contener números.")
-    while(True):
-        try:
-            cantidad = int(input("Cantidad a añadir -> "))
-        except ValueError:
-            print("La cantidad solo puede contener números.")
-            continue
 
-        if cantidad > 0:
-            break
-        print("El campo (CANTIDAD) no puede ser negativo ni nulo.")
+    print("Para agregar un producto:")
+
+    codigoProducto = Utilities.validacionCampos("Código del producto",int,Utilities.esDigito,"solo puede tener números.")
+
+    cantidad = Utilities.validacionCampos("Cantidad a añadir",int,Utilities.campoNoNuloNiNegativo,"no puede ser nulo ni negativo.")
 
     Funciones.agregarProducto(codigoProducto,cantidad,detalleFactura)
 
 
 def sacarProducto(detalleFactura):
     if len(detalleFactura) > 0:
-        print("Para sacar un producto:")
-        while(True):
-            codigoProducto = input("Código del producto -> ").strip()
-            if codigoProducto.isdigit():
-                break
-            print("El código solo puede contener números.")
-        while(True):
-            try:
-                cantidad = int(input("Cantidad a eliminar -> "))
-            except ValueError:
-                print("La cantidad solo puede contener números.")
-                continue
-
-            if cantidad > 0:
-                break
-            print("El campo (CANTIDAD) no puede ser negativo ni nulo.")
+        print("Para eliminar un producto del pedido:")
+        
+        codigoProducto = Utilities.validacionCampos("Código del producto",int,Utilities.esDigito,"solo puede tener números.")
+        
+        cantidad = Utilities.validacionCampos("Cantidad a eliminar",int,Utilities.campoNoNuloNiNegativo,"solo puede tener números.")
 
         encontrado = False
-
         for pedido in detalleFactura:
             if codigoProducto == pedido["ID_PRODUCTO"]:
                 encontrado = True
@@ -213,12 +140,14 @@ def sacarProducto(detalleFactura):
                     print(mensaje)
                 else:
                     print(f"Se quitaron {cantidad} unidades de {pedido['Nombre_Producto']} éxitosamente.")
+                break
 
         if not encontrado:
             print("Ese producto no está en el pedido.")
 
     else:
         print("No se puede sacar productos del pedido porque está vacío.")
+
 
 def finalizarPedido(factura, detalleFactura):
     print("Pedido finalizado: Generando factura...")
@@ -252,16 +181,13 @@ Cod | Producto | Cant | V.Unit | IVA | Subtotal
 
     print(facturaVisual)
 
-    while(True):
-        respuesta = input("¿Quiere guardar la factura?").title()
-        if respuesta in ("Si","Sí"):
-            print("Guardando la factura...")
-            Funciones.guardarFacturaVisual(facturaVisual)
-            break
-        elif respuesta in ("No"):
-            print("Ha elegido no guardar la factura.")
-            break
-        print("Opción inválida.")
+    guardar = Utilities.guardarValidacion()
+    if guardar:
+        print("Guardando factura...")
+        Funciones.guardarFacturaVisual(facturaVisual)
+    else:
+        print("Ha elegido no guardar la factura.")
+
 
 def reporteVentas():
     while True:
@@ -306,13 +232,9 @@ Mesa | Total Productos | Subtotal Bruto | Subtotal IVA | Subtotal
 
     print(reporteVisual)
 
-    while True:
-        respuesta = input("¿Desea imprimir el reporte en CSV? -> ").title()
-        if respuesta in ("Si", "Sí"):
-            Funciones.guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas)
-            print("Reporte guardado exitosamente.")
-            break
-        elif respuesta == "No":
-            print("Ha elegido no guardar el reporte.")
-            break
-        print("Opción inválida.")
+    guardar = Utilities.guardarValidacion()
+
+    if guardar:
+        Funciones.guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas)
+    else:
+        print("Ha elegido no guardar el reporte.")

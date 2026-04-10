@@ -3,6 +3,8 @@ from csv import DictReader
 from pathlib import Path
 from datetime import datetime
 
+import App.Utilidades as Utilities
+
 rutaBase = Path(__file__).parent.parent
 ruta = rutaBase/"DB"
 
@@ -15,13 +17,17 @@ def crearProducto(codigo, tipoProducto, nombre, valor, iva):
     producto["Valor"] = valor
     producto["IVA"] = iva
 
-    listaProductos = verificarExistencia(ruta,"Productos.csv")
-
-    with open (ruta/"Productos.csv", "a", newline="", encoding="utf-8") as file:
-        writerCSV = DictWriter(file, fieldnames=["Código","Tipo_Producto","Nombre","Valor","IVA"])
-        if not listaProductos:
-            writerCSV.writeheader()
-        writerCSV.writerows([producto])
+    listaProductos = Utilities.verificarExistencia(ruta,"Productos.csv")
+    
+    productoExistente = next((producto for producto in listaProductos if str(codigo) == producto["Código"]),None)
+    if not productoExistente:
+        with open (ruta/"Productos.csv", "a", newline="", encoding="utf-8") as file:
+            writerCSV = DictWriter(file, fieldnames=["Código","Tipo_Producto","Nombre","Valor","IVA"])
+            if not listaProductos:
+                writerCSV.writeheader()
+            writerCSV.writerows([producto])
+    else:
+        print("ERROR: Ese producto ya había sido registrado antes.")
 
 def crearMesa(codigo,tipoMesa,puestos):
     mesa = {}
@@ -30,46 +36,54 @@ def crearMesa(codigo,tipoMesa,puestos):
     mesa["Tipo_Mesa"] = tipoMesa
     mesa["Cantidad_Puestos"] = puestos
 
-    listaMesas = verificarExistencia(ruta,"Mesas.csv")
+    listaMesas = Utilities.verificarExistencia(ruta,"Mesas.csv")
 
-    with open (ruta/"Mesas.csv", "a", newline="", encoding="utf-8") as file:
-        writerCSV = DictWriter(file, fieldnames=["Código","Tipo_Mesa","Cantidad_Puestos"])
-        if not listaMesas:
-            writerCSV.writeheader()
-        writerCSV.writerows([mesa])
+    mesaExistente = next((mesa for mesa in listaMesas if str(codigo) == mesa["Código"]),None)
+    if not mesaExistente:
+        with open (ruta/"Mesas.csv", "a", newline="", encoding="utf-8") as file:
+            writerCSV = DictWriter(file, fieldnames=["Código","Tipo_Mesa","Cantidad_Puestos"])
+            if not listaMesas:
+                writerCSV.writeheader()
+            writerCSV.writerows([mesa])
+    else:
+        print("ERROR: Esa mesa ya fue creada anteriormente.")
 
 
-def crearCliente(id, nombre, telefono, email):
+def crearCliente(idCliente, nombre, telefono, email):
     cliente = {}
     
-    cliente["ID"] = id
+    cliente["ID"] = idCliente
     cliente["Nombre"] = nombre
     cliente["Teléfono"] = telefono
     cliente["Email"] = email
 
-    listaClientes = verificarExistencia(ruta,"Clientes.csv")
-
-    with open (ruta/"Clientes.csv", "a", newline="", encoding="utf-8") as file:
-        writerCSV = DictWriter(file, fieldnames=["ID","Nombre","Teléfono","Email"])
-        if not listaClientes:
-            writerCSV.writeheader()
-        writerCSV.writerows([cliente])
+    listaClientes = Utilities.verificarExistencia(ruta,"Clientes.csv")
+    
+    clienteExistente = next((cliente for cliente in listaClientes if str(idCliente) == cliente["ID"]),None)
+    if not clienteExistente:
+        with open (ruta/"Clientes.csv", "a", newline="", encoding="utf-8") as file:
+            writerCSV = DictWriter(file, fieldnames=["ID","Nombre","Teléfono","Email"])
+            if not listaClientes:
+                writerCSV.writeheader()
+            writerCSV.writerows([cliente])
+    else:
+        return "ERROR: Ese cliente ya está registrado."
 
 
 def facturar(codigoMesa,idCliente):
     with open(ruta/"Mesas.csv","r",newline="",encoding="utf-8") as file:
         listaMesas = DictReader(file)
-        mesa = next((mesa for mesa in listaMesas if codigoMesa == mesa["Código"]),None)
+        mesa = next((mesa for mesa in listaMesas if str(codigoMesa) == mesa["Código"]),None)
 
     if mesa:
         with open(ruta/"Clientes.csv","r",newline="",encoding="utf-8") as file:
             listaClientes = DictReader(file)
-            cliente = next((cliente for cliente in listaClientes if idCliente == cliente["ID"]), None)
+            cliente = next((cliente for cliente in listaClientes if str(idCliente) == cliente["ID"]), None)
 
         if cliente:
             factura = {}
 
-            factura["ID_FACTURA"] = asignarCodigoFactura()
+            factura["ID_FACTURA"] = Utilities.asignarCodigoFactura()
             factura["Fecha"] = datetime.now().strftime("%d/%m/%Y")
             factura["Mesa"] = mesa["Código"]
             factura["ID_CLIENTE"] = cliente["ID"]
@@ -80,20 +94,10 @@ def facturar(codigoMesa,idCliente):
             return factura
 
 
-def asignarCodigoFactura():
-    listaFacturas = verificarExistencia(ruta,"Facturas.csv")
-
-    if listaFacturas:
-        codigo = int(listaFacturas[-1]["ID_FACTURA"])+1
-    else:
-        codigo = 1
-    return codigo
-
-
 def agregarProducto(codigoProducto, cantidad, detalleFactura):
     with open(ruta/"Productos.csv","r",newline="",encoding="utf-8") as file:
         listaProductos = list(DictReader(file))
-    producto = next((producto for producto in listaProductos if codigoProducto == producto["Código"]),None)
+    producto = next((producto for producto in listaProductos if str(codigoProducto) == producto["Código"]),None)
 
     if producto:
         for pedido in detalleFactura:
@@ -132,7 +136,7 @@ def guardarInformacionFactura(factura, detalleFactura):
     for pedido in detalleFactura:
         pedido["ID_FACTURA"] = factura["ID_FACTURA"]
 
-    listaFacturas = verificarExistencia(ruta,"Facturas.csv")
+    listaFacturas = Utilities.verificarExistencia(ruta,"Facturas.csv")
 
     with open(ruta/"Facturas.csv","a",newline="",encoding="utf-8") as file:
         writerCSV = DictWriter(file,fieldnames=["ID_FACTURA","Mesa","Fecha","ID_CLIENTE","Nombre_Cliente","Teléfono","Email"])
@@ -140,7 +144,7 @@ def guardarInformacionFactura(factura, detalleFactura):
             writerCSV.writeheader()
         writerCSV.writerows([factura])
 
-    listaDetalles = verificarExistencia(ruta,"Detalle_Facturas.csv")
+    listaDetalles = Utilities.verificarExistencia(ruta,"Detalle_Facturas.csv")
 
     with open(ruta/"Detalle_Facturas.csv","a",newline="",encoding="utf-8") as file:
         writerCSV = DictWriter(file,fieldnames=["ID_FACTURA","ID_PRODUCTO","Nombre_Producto","Cantidad","Precio_unitario","IVA","Subtotal"])
@@ -150,46 +154,62 @@ def guardarInformacionFactura(factura, detalleFactura):
 
 
 def guardarFacturaVisual(facturaVisual):
-    with open(ruta/"Facturas_Visual.txt","a") as file:
+    with open(ruta/"Facturas_Visual.txt","w",encoding="utf-8") as file:
         file.write(facturaVisual)
-        file.write("\n")
 
 
 def generarReporte(fecha):
-    detalles = verificarExistencia(ruta, "Detalle_Facturas.csv")
-    facturas = verificarExistencia(ruta, "Facturas.csv")
+    listaDetalleFactura = Utilities.verificarExistencia(ruta, "Detalle_Facturas.csv")
+    listaFacturas = Utilities.verificarExistencia(ruta, "Facturas.csv")
 
-    if detalles and facturas:
-        facturasFecha = [f for f in facturas if f["Fecha"] == fecha]
+    if not listaDetalleFactura or not listaFacturas:
+        return
 
-        if facturasFecha:
-            reporte = []
+    facturasEnFecha = []
 
-            for factura in facturasFecha:
-                idFactura = factura["ID_FACTURA"]
-                detallesMesa = [d for d in detalles if d["ID_FACTURA"] == idFactura]
+    for factura in listaFacturas:
+        if factura["Fecha"] == fecha:
+            facturasEnFecha.append(factura)
 
-                totalProductos = 0
-                subtotalBruto = 0
-                subtotalIVA = 0
+    if len(facturasEnFecha) == 0:
+        return
 
-                for d in detallesMesa:
-                    totalProductos += int(d["Cantidad"])
-                    subtotalBruto += round(float(d["Precio_unitario"]) * int(d["Cantidad"]), 2)
-                    subtotalIVA += round((float(d["Precio_unitario"]) * int(d["IVA"]) / 100) * int(d["Cantidad"]), 2)
+    reporte = []
 
-                subtotal = round(subtotalBruto + subtotalIVA, 2)
+    for factura in facturasEnFecha:
+        idFactura = factura["ID_FACTURA"]
 
-                fila = {}
-                fila["Mesa"] = factura["Mesa"]
-                fila["Total_Productos"] = totalProductos
-                fila["Subtotal_Bruto"] = round(subtotalBruto, 2)
-                fila["Subtotal_IVA"] = round(subtotalIVA, 2)
-                fila["Subtotal"] = subtotal
+        detalleFactura = []
 
-                reporte.append(fila)
+        for pedido in listaDetalleFactura:
+            if pedido["ID_FACTURA"] == str(idFactura):
+                detalleFactura.append(pedido)
 
-            return reporte
+        totalProductos = 0
+        subtotalBruto = 0
+        subtotalIVA = 0
+
+        for pedido in detalleFactura:
+            cantidad = int(pedido["Cantidad"])
+            precio = float(pedido["Precio_unitario"])
+            iva = int(pedido["IVA"])
+
+            totalProductos += cantidad
+            subtotalBruto += precio * cantidad
+            subtotalIVA += (precio * iva / 100) * cantidad
+
+        subtotal = subtotalBruto + subtotalIVA
+
+        fila = {}
+        fila["Mesa"] = factura["Mesa"]
+        fila["Total_Productos"] = totalProductos
+        fila["Subtotal_Bruto"] = round(subtotalBruto, 2)
+        fila["Subtotal_IVA"] = round(subtotalIVA, 2)
+        fila["Subtotal"] = round(subtotal, 2)
+
+        reporte.append(fila)
+
+    return reporte
 
 
 def guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas):
@@ -201,13 +221,13 @@ def guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas):
     totales["Subtotal_IVA"] = round(totalIVA, 2)
     totales["Subtotal"] = round(totalVentas, 2)
 
-    for fila in reporte:
-        totales["Total_Productos"] += fila["Total_Productos"]
+    for filaReporte in reporte:
+        totales["Total_Productos"] += filaReporte["Total_Productos"]
 
-    listaReportes = verificarExistencia(ruta, "Reporte_Ventas.csv")
+    listaReportes = Utilities.verificarExistencia(ruta, "Reporte_Ventas.csv")
 
-    for fila in reporte:
-        fila["Fecha"] = fecha
+    for filaReporte in reporte:
+        filaReporte["Fecha"] = fecha
 
     with open(ruta/"Reporte_Ventas.csv", "a", newline="", encoding="utf-8") as file:
         writerCSV = DictWriter(file, fieldnames=["Fecha","Mesa","Total_Productos","Subtotal_Bruto","Subtotal_IVA","Subtotal"])
@@ -215,15 +235,3 @@ def guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas):
             writerCSV.writeheader()
         writerCSV.writerows(reporte)
         writerCSV.writerow(totales)
-
-
-
-def verificarExistencia(ruta, archivo):
-    while(True):
-        try:
-            with open(ruta/archivo,"r",newline="",encoding="utf-8") as file:
-                lista = list(DictReader(file))
-            return lista
-        except FileNotFoundError:
-            with open(ruta/archivo,"w",newline="",encoding="utf-8") as file:
-                pass
