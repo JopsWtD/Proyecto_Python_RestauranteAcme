@@ -38,14 +38,13 @@ def validacionCampos(nombreCampo, tipo, condicion=None, mensajeCondicion=None):
 
 
 def verificarExistencia(ruta, archivo):
-    while(True):
-        try:
-            with open(ruta/archivo,"r",newline="",encoding="utf-8") as file:
-                lista = list(DictReader(file))
-            return lista
-        except FileNotFoundError:
-            with open(ruta/archivo,"w",newline="",encoding="utf-8") as file:
-                pass
+    try:
+        with open(ruta/archivo,"r",newline="",encoding="utf-8") as file:
+            return list(DictReader(file))
+    except FileNotFoundError:
+        with open(ruta/archivo,"w",newline="",encoding="utf-8") as file:
+            pass
+        return []
 
 
 

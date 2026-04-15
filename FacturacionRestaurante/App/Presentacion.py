@@ -84,8 +84,12 @@ def inicioFacturacion():
     idCliente = Utilities.validacionCampos('ID del cliente',int,Utilities.esDigito,"solo puede tener números.")
 
     factura = Funciones.facturar(codigoMesa,idCliente)
-    if factura:
-        iniciarVenta(factura)
+    
+    if not isinstance(factura,dict):
+        print(factura)
+        return
+    
+    iniciarVenta(factura)
 
 
 def iniciarVenta(factura):
@@ -120,7 +124,12 @@ def agregarProducto(detalleFactura):
 
     cantidad = Utilities.validacionCampos('Cantidad a añadir',int,Utilities.campoNoNuloNiNegativo,'no puede ser nulo ni negativo.')
 
-    Funciones.agregarProducto(codigoProducto,cantidad,detalleFactura)
+    mensaje = Funciones.agregarProducto(codigoProducto,cantidad,detalleFactura)
+
+    if (mensaje):
+        print(mensaje)
+    else:
+        print("El producto se agregó correctamente.")
 
 
 def sacarProducto(detalleFactura):
