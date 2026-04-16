@@ -11,6 +11,7 @@ while(opcion != "0"):
 3. Crear cliente
 4. Facturación
 5. Reporte de ventas
+6. Listar productos menos vendidos
 0. Salir""")
     print("-"*35)
 
@@ -27,6 +28,8 @@ while(opcion != "0"):
             App.inicioFacturacion()
         case "5":
             App.reporteVentas()
+        case "6":
+            App.consultaFacturas()
         case "0":
             print("Hasta luego.")
         case _:

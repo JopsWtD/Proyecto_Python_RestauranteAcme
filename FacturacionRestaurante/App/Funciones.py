@@ -245,3 +245,63 @@ def guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas):
             writerCSV.writeheader()
         writerCSV.writerows(reporte)
         writerCSV.writerow(totales)
+
+def busquedaFacturas(fechaInicio,fechaFin):
+    facturasConsultadas = []
+
+    listaFacturas = Utilities.verificarExistencia(ruta,"Facturas.csv")
+    if not listaFacturas:
+        return "Actualmente no hay facturas en el sistema."
+    
+    listaDetalles = Utilities.verificarExistencia(ruta,"Detalle_Facturas.csv")
+
+    for factura in listaFacturas:
+        if fechaInicio <= factura["Fecha"] <= fechaFin:
+            facturasConsultadas.append(factura)
+    
+    totalProductos = totalizarProductosVendidos(facturasConsultadas,listaDetalles)
+                
+    totalProductos = ordenarProductosPorUnidadesVendidas(totalProductos)
+
+    listarProductosMenosVendidos(totalProductos)
+
+
+def totalizarProductosVendidos(facturasConsultadas, listaDetalles):
+
+    totalProductos = {}
+    idValida = {factura["ID_FACTURA"] for factura in facturasConsultadas}
+
+    for detalle in listaDetalles:
+        if detalle["ID_FACTURA"] in idValida:
+            nombre = detalle["Nombre_Producto"]
+            cantidad = int(detalle["Cantidad"])
+
+            if nombre in totalProductos:
+                totalProductos[nombre] += cantidad
+            else:
+                totalProductos[nombre] = cantidad
+    return [{"Nombre": key, "Cantidad": value} for key,value in totalProductos.items()]
+
+
+def ordenarProductosPorUnidadesVendidas(totalProductos):
+    totalProductosOrdenados = []
+
+    for i in range(0,len(totalProductos)):
+        actual = None
+        productoAgregar = None
+
+        for producto in totalProductos:
+            if producto not in totalProductosOrdenados:
+                if actual == None or int(producto["Cantidad"]) < actual:
+                    actual = int(producto["Cantidad"])
+                    productoAgregar = producto
+
+        totalProductosOrdenados.append(productoAgregar)
+    return totalProductosOrdenados
+
+
+def listarProductosMenosVendidos(totalProductos):
+    productosMostrar = totalProductos[:5]
+    print("TOP 5 productos menos vendidos:")
+    for i,producto in enumerate(productosMostrar, start = 1):
+            print(f"{i}. {producto['Nombre']} ({producto['Cantidad']} unidades vendidas).")

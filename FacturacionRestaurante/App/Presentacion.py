@@ -247,3 +247,23 @@ Mesa | Total Productos | Subtotal Bruto | Subtotal IVA | Subtotal
         Funciones.guardarReporteCSV(reporte, fecha, totalVentaBruta, totalIVA, totalVentas)
     else:
         print("Ha elegido no guardar el reporte.")
+
+    
+def consultaFacturas():
+    while(True):
+        fechaInicio = input("Para continuar con la búsqueda de facturas:\nIngrese una fecha para la cual se quiere buscar: (DD/MM/AAAA) -> ").strip()
+        try:
+            datetime.strptime(fechaInicio, "%d/%m/%Y")
+            break
+        except ValueError:
+            print("Formato de fecha inválido. Use DD/MM/AAAA.")
+
+    while(True):
+        fechaFin = input("Para continuar con la búsqueda de facturas:\nIngrese una fecha para la cual se quiere buscar: (DD/MM/AAAA) -> ").strip()
+        try:
+            datetime.strptime(fechaFin, "%d/%m/%Y")
+            break
+        except ValueError:
+            print("Formato de fecha inválido. Use DD/MM/AAAA.")
+
+    Funciones.busquedaFacturas(fechaInicio,fechaFin)
