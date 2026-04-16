@@ -94,11 +94,40 @@ def facturar(codigoMesa,idCliente):
     factura["Nombre_Cliente"] = cliente["Nombre"]
     factura["Teléfono"] = cliente["Teléfono"]
     factura["Email"] = cliente["Email"]
+    factura["Descuento"] = ""
+
+    return factura
+
+def facturar_con_descuento(codigoMesa,idCliente,descuento):
+    with open(ruta/"Mesas.csv","r",newline="",encoding="utf-8") as file:
+        listaMesas = DictReader(file)
+        mesa = next((mesa for mesa in listaMesas if codigoMesa == int(mesa["Código"])),None)
+
+    if not mesa:
+        return "Mesa no encontrada."
+    
+    with open(ruta/"Clientes.csv","r",newline="",encoding="utf-8") as file:
+        listaClientes = DictReader(file)
+        cliente = next((cliente for cliente in listaClientes if idCliente == int(cliente["ID"])), None)
+
+    if not cliente:
+        return "Cliente no encontrado."
+    
+    factura = {}
+
+    factura["ID_FACTURA"] = Utilities.asignarCodigoFactura()
+    factura["Fecha"] = datetime.now().strftime("%d/%m/%Y")
+    factura["Mesa"] = mesa["Código"]
+    factura["ID_CLIENTE"] = cliente["ID"]
+    factura["Nombre_Cliente"] = cliente["Nombre"]
+    factura["Teléfono"] = cliente["Teléfono"]
+    factura["Email"] = cliente["Email"]
+    factura["Descuento"] = descuento
 
     return factura
 
 
-def agregarProducto(codigoProducto, cantidad, detalleFactura):
+def agregarProducto(codigoProducto, cantidad, detalleFactura, factura):
     with open(ruta/"Productos.csv","r",newline="",encoding="utf-8") as file:
         listaProductos = list(DictReader(file))
     producto = next((producto for producto in listaProductos if codigoProducto == int(producto["Código"])),None)
@@ -109,6 +138,8 @@ def agregarProducto(codigoProducto, cantidad, detalleFactura):
         if codigoProducto == pedido["ID_PRODUCTO"]:
             pedido["Cantidad"] += cantidad
             pedido["Subtotal"] = round(((pedido["Precio_unitario"] + (pedido["Precio_unitario"] * pedido["IVA"] / 100)) * pedido["Cantidad"]), 2)
+            if pedido["Descuento"]:
+                pedido["Total_Descuento"] = round((pedido["Subtotal"] -(pedido['Subtotal'] * pedido["Descuento"] / 100)),2)
             return "Producto actualizado con éxito."
 
     pedido = {}
@@ -119,6 +150,10 @@ def agregarProducto(codigoProducto, cantidad, detalleFactura):
     pedido["Precio_unitario"] = int(producto["Valor"])
     pedido["IVA"] = int(producto['IVA'])
     pedido["Subtotal"] = round((((pedido["Precio_unitario"] + (pedido["Precio_unitario"] * pedido['IVA'])/100)) * cantidad),2)
+    pedido["Descuento"] = factura["Descuento"]
+    pedido["Total_Descuento"] = ""
+    if factura["Descuento"]:
+        pedido["Total_Descuento"] = round((pedido["Subtotal"] -(pedido['Subtotal'] * pedido["Descuento"] / 100)),2)
 
     detalleFactura.append(pedido)
         
@@ -129,6 +164,8 @@ def sacarProducto(codigoProducto, cantidad, detalleFactura):
             if cantidad <= pedido["Cantidad"]:
                 pedido["Cantidad"] -= cantidad
                 pedido["Subtotal"] = round(((pedido["Precio_unitario"] + (pedido["Precio_unitario"] * pedido['IVA']/100)) * pedido["Cantidad"]),2)
+                if pedido["Descuento"]:
+                    pedido["Total_Descuento"] = round((pedido["Subtotal"] -(pedido['Subtotal'] * pedido["Descuento"] / 100)),2)
                 if pedido["Cantidad"] == 0:
                     detalleFactura.remove(pedido)
                 break
@@ -140,11 +177,12 @@ def guardarInformacionFactura(factura, detalleFactura):
 
     for pedido in detalleFactura:
         pedido["ID_FACTURA"] = factura["ID_FACTURA"]
+        
 
     listaFacturas = Utilities.verificarExistencia(ruta,"Facturas.csv")
 
     with open(ruta/"Facturas.csv","a",newline="",encoding="utf-8") as file:
-        writerCSV = DictWriter(file,fieldnames=["ID_FACTURA","Mesa","Fecha","ID_CLIENTE","Nombre_Cliente","Teléfono","Email"])
+        writerCSV = DictWriter(file,fieldnames=["ID_FACTURA","Descuento","Mesa","Fecha","ID_CLIENTE","Nombre_Cliente","Teléfono","Email"])
         if not listaFacturas:
             writerCSV.writeheader()
         writerCSV.writerows([factura])
@@ -152,14 +190,14 @@ def guardarInformacionFactura(factura, detalleFactura):
     listaDetalles = Utilities.verificarExistencia(ruta,"Detalle_Facturas.csv")
 
     with open(ruta/"Detalle_Facturas.csv","a",newline="",encoding="utf-8") as file:
-        writerCSV = DictWriter(file,fieldnames=["ID_FACTURA","ID_PRODUCTO","Nombre_Producto","Cantidad","Precio_unitario","IVA","Subtotal"])
+        writerCSV = DictWriter(file,fieldnames=["ID_FACTURA","ID_PRODUCTO","Nombre_Producto","Cantidad","Precio_unitario","IVA","Subtotal","Descuento","Total_Descuento"])
         if not listaDetalles:
             writerCSV.writeheader()
         writerCSV.writerows(detalleFactura)
 
 
-def guardarFacturaVisual(facturaVisual):
-    with open(ruta/"Facturas_Visual.txt","w",encoding="utf-8") as file:
+def guardarFacturaVisual(facturaVisual, factura):
+    with open(ruta/f"FacturaV-{factura['ID_FACTURA']}.txt","w",encoding="utf-8") as file:
         file.write(facturaVisual)
 
 

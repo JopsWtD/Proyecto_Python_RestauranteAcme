@@ -83,8 +83,21 @@ def inicioFacturacion():
 
     idCliente = Utilities.validacionCampos('ID del cliente',int,Utilities.esDigito,"solo puede tener números.")
 
-    factura = Funciones.facturar(codigoMesa,idCliente)
-    
+    while(True):
+        respuesta = input("¿Este pedido aplica algún tipo de descuento?(Si/No) -> ").title()
+        if respuesta in ("Si","Sí"):
+            descuento = Utilities.validacionCampos('Descuento',int,Utilities.validacionPuestos,"tiene que estar entre 1 y 50%")
+            break
+        elif respuesta == "No":
+            descuento = ""
+            break
+        else:
+            print("Respuesta inválida. Intente de nuevo.")
+    if descuento:
+        factura = Funciones.facturar_con_descuento(codigoMesa,idCliente,descuento)
+    else:
+        factura = Funciones.facturar(codigoMesa,idCliente)
+
     if not isinstance(factura,dict):
         print(factura)
         return
@@ -101,22 +114,29 @@ def iniciarVenta(factura):
         print("""¿Qué quieres hacer a continuación?
     1. Agregar productos al pedido
     2. Sacar productos del pedido
+    3. Ver el estado de tu pedido
     0. Finalizar pedido""")
         print("-"*35)
         opcion = input("Número de opción -> ")
 
         match(opcion):
             case "1":
-                agregarProducto(detalleFactura)
+                agregarProducto(factura, detalleFactura)
 
             case "2":
                 sacarProducto(detalleFactura)
-
+            
+            case "3":
+                if len(detalleFactura) != 0:
+                    carrito = obtenerFacturaVisual(factura,detalleFactura)
+                    print(carrito)
+                else:
+                    print("Todavía no has añadido productos al pedido.")
             case "0":
                 finalizarPedido(factura, detalleFactura)
 
 
-def agregarProducto(detalleFactura):
+def agregarProducto(factura,detalleFactura):
 
     print("Para agregar un producto:")
 
@@ -124,7 +144,7 @@ def agregarProducto(detalleFactura):
 
     cantidad = Utilities.validacionCampos('Cantidad a añadir',int,Utilities.campoNoNuloNiNegativo,'no puede ser nulo ni negativo.')
 
-    mensaje = Funciones.agregarProducto(codigoProducto,cantidad,detalleFactura)
+    mensaje = Funciones.agregarProducto(codigoProducto,cantidad,detalleFactura,factura)
 
     if (mensaje):
         print(mensaje)
@@ -162,38 +182,13 @@ def finalizarPedido(factura, detalleFactura):
     print("Pedido finalizado: Generando factura...")
     Funciones.guardarInformacionFactura(factura,detalleFactura)
     
-    facturaVisual = f"""
-==========================================
-            ACME RESTAURANT
-==========================================
-Fecha: {factura['Fecha']}
-Mesa: {factura['Mesa']}
-------------------------------------------
-CLIENTE:
-Nombre: {factura['Nombre_Cliente']}
-ID: {factura['ID_CLIENTE']}
-Tel: {factura['Teléfono']}
-Email: {factura['Email']}
-------------------------------------------
-DETALLE:
-Cod | Producto | Cant | V.Unit | IVA | Subtotal
-"""
-    totalFactura = 0
-    for pedido in detalleFactura:
-        linea = f"{pedido['ID_PRODUCTO']} | {pedido['Nombre_Producto']} | {pedido['Cantidad']}   | {pedido['Precio_unitario']}    | {pedido['IVA']}%   | {pedido['Subtotal']}\n"
-        facturaVisual += linea
-        totalFactura += float(pedido["Subtotal"])
-
-    facturaVisual += "------------------------------------------"
-    facturaVisual += f"\nTOTAL A PAGAR: ${round(totalFactura, 2)}"
-    facturaVisual += "\n==========================================\n"
-
+    facturaVisual = obtenerFacturaVisual(factura,detalleFactura)
     print(facturaVisual)
 
     guardar = Utilities.guardarValidacion()
     if guardar:
         print("Guardando factura...")
-        Funciones.guardarFacturaVisual(facturaVisual)
+        Funciones.guardarFacturaVisual(facturaVisual,factura)
     else:
         print("Ha elegido no guardar la factura.")
 
@@ -267,3 +262,47 @@ def consultaFacturas():
             print("Formato de fecha inválido. Use DD/MM/AAAA.")
 
     Funciones.busquedaFacturas(fechaInicio,fechaFin)
+
+def obtenerFacturaVisual(factura,detalleFactura):
+    facturaVisual = f"""
+==========================================
+            ACME RESTAURANT
+==========================================
+Fecha: {factura['Fecha']}
+Mesa: {factura['Mesa']}
+------------------------------------------
+CLIENTE:
+Nombre: {factura['Nombre_Cliente']}
+ID: {factura['ID_CLIENTE']}
+Tel: {factura['Teléfono']}
+Email: {factura['Email']}
+------------------------------------------"""
+    
+    lineaDetalle = ""
+
+    totalFactura = 0
+
+    for i,pedido in enumerate(detalleFactura, start = 1):
+        if i == 1:    
+            lineaDetalle ="""
+DETALLE:
+Cod | Producto | Cant | V.Unit | IVA | Subtotal |"""
+            if pedido["Descuento"]:
+                lineaDetalle= f"{lineaDetalle} Descuento | Total_Descuento |\n"
+            
+            facturaVisual += lineaDetalle
+
+        if not pedido["Descuento"]:
+            linea = f"{pedido['ID_PRODUCTO']} | {pedido['Nombre_Producto']} | {pedido['Cantidad']}   | {pedido['Precio_unitario']}    | {pedido['IVA']}%   | {pedido['Subtotal']}  |\n"
+            facturaVisual += linea
+            totalFactura += float(pedido["Subtotal"])
+        else:
+            linea = f"{pedido['ID_PRODUCTO']} | {pedido['Nombre_Producto']} | {pedido['Cantidad']}   | {pedido['Precio_unitario']}    | {pedido['IVA']}%   | {pedido['Subtotal']}    | {pedido['Descuento']}    | {pedido['Total_Descuento']}  |\n"
+            facturaVisual += linea
+            totalFactura += float(pedido["Total_Descuento"])
+
+    facturaVisual += "------------------------------------------"
+    facturaVisual += f"\nTOTAL A PAGAR: ${round(totalFactura, 2)}"
+    facturaVisual += "\n==========================================\n"
+
+    return facturaVisual

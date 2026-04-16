@@ -31,7 +31,7 @@ def validacionCampos(nombreCampo, tipo, condicion=None, mensajeCondicion=None):
                 print(f"El campo ({nombreCampo.upper()}) {mensajeCondicion}")
                 continue
             return campo
-         
+        
         except ValueError:
             print(f"El campo ({nombreCampo.upper()}) solo acepta números.")
 
